@@ -1,102 +1,109 @@
-# 📊 Monitor de Serviços - Flutter
+# 🚨 ServiceAlert - Monitor de Status de Serviços
 
-Um aplicativo móvel moderno e eficiente desenvolvido em **Flutter** para monitorar a disponibilidade de sites e serviços web em tempo real. O aplicativo permite que o usuário cadastre suas próprias URLs, salva os dados localmente no dispositivo e emite **Notificações Nativas** caso algum serviço fique fora do ar.
+**ServiceAlert** é um aplicativo mobile desenvolvido em Flutter projetado para monitorar a disponibilidade de servidores, sites e APIs em tempo real. O aplicativo roda de forma ininterrupta em segundo plano, enviando notificações locais imediatas caso algum serviço cadastrado saia do ar.
 
-## 🚀 Funcionalidades
-
-* **Cadastro Dinâmico:** Adicione serviços personalizados (Nome e URL/IP) diretamente pelo aplicativo.
-* **Armazenamento Local:** Integração com **SQLite** para salvar seus serviços de forma segura e offline.
-* **Isolamento de Dados (UUID):** Geração de um identificador único para o dispositivo, garantindo que o banco de dados carregue apenas as configurações do aparelho atual.
-* **Monitoramento Automatizado:** Checagem contínua do status dos serviços a cada 5 minutos.
-* **Notificações Locais:** Alertas visuais e sonoros integrados ao sistema operacional (Android/iOS) que avisam instantaneamente quando um serviço cai, sem depender de APIs de terceiros.
-* **Lógica Anti-Spam de Alertas:** Sistema inteligente que limita a emissão de notificações a cada 10 minutos por serviço.
+Este projeto foi desenvolvido como **Projeto Final da disciplina de Desenvolvimento Mobile**.
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🚀 Funcionalidades Principais
 
-O projeto adota uma arquitetura limpa, separando interface, banco de dados e regras de negócio:
-
-```text
-lib/
-│
-├── models/
-│   └── service_model.dart         # Estrutura do serviço e conversores para o SQLite (toMap/fromMap).
-│
-├── widgets/
-│   └── service_card.dart          # Componente visual reutilizável para a lista.
-│
-├── pages/
-│   └── dashboard_page.dart        # Tela principal, controle de temporizadores e interface de cadastro.
-│
-├── services/
-│   ├── monitoring_service.dart    # Lógica de requisições HTTP para validar o status das URLs.
-│   ├── database_service.dart      # Gerenciamento do SQLite (Criação, Inserção, Atualização e Leitura).
-│   └── notification_service.dart  # Configuração e disparo de notificações locais nativas.
-│
-└── main.dart                      # Ponto de entrada do app e inicialização de serviços.
-
-```
+* **Identificação Única e Persistente (UUID):** Geração de um identificador exclusivo para o dispositivo na primeira inicialização, armazenado de forma segura via `SharedPreferences`. Os dados não são perdidos ao fechar o app.
+* **Gerenciamento de Serviços (CRUD Completo):** Interface intuitiva para adicionar, listar, editar endereços/nomes e excluir serviços monitorados com caixas de diálogo de confirmação.
+* **Monitoramento em Segundo Plano (Foreground Service):** Integração com o `flutter_background_service` para garantir checagens estritas a cada **5 minutos**, mesmo se o aplicativo for minimizado ou fechado pelo sistema.
+* **Sistema de Alertas Inteligente:** Disparo de notificações locais (`flutter_local_notifications`) quando uma queda é detectada, respeitando um intervalo de 10 minutos entre alertas idênticos para evitar spam.
+* **Sincronização Manual com Feedback Dinâmico:** Botão de atualização na interface que força a checagem imediata da rede e exibe um `SnackBar` contextualizável ("Tudo certo por aqui" ou "Ainda existem sistemas fora do ar").
+* **Próxima Verificação Visível:** Contador estático que exibe o horário exato (HH:mm:ss) em que a próxima checagem em segundo plano será disparada.
 
 ---
 
 ## 🛠️ Tecnologias e Pacotes Utilizados
 
-* **Flutter / Dart** (Framework e Linguagem)
-* **[sqflite](https://pub.dev/packages/sqflite):** Para o banco de dados relacional local.
-* **[flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications):** Para emissão de alertas nativos do dispositivo.
-* **[http](https://pub.dev/packages/http):** Para checagem de ping/status das URLs.
-* **[uuid](https://pub.dev/packages/uuid):** Para gerar o identificador único do celular.
+* **Flutter & Dart** (Configurado com suporte moderno a Kotlin DSL `.kts` no Android)
+* **SQFlite:** Banco de dados relacional local para persistência dos sites cadastrados e histórico de status.
+* **SharedPreferences:** Armazenamento chave-valor para retenção estável do UUID do dispositivo.
+* **Flutter Background Service:** Criação do serviço nativo em primeiro plano (Foreground Task) para imunidade contra o encerramento do sistema.
+* **Flutter Local Notifications:** Motor de agendamento e exibição de alertas visuais e sonoros no sistema operacional.
+* **Http / Internet Connection Check:** Módulo responsável por testar a conectividade ativa das URLs/IPs configurados.
 
 ---
 
-## ⚙️ Permissões do Android
+## ⚙️ Configurações Nativas Obrigatórias (Android)
 
-Para o funcionamento correto em dispositivos Android (especialmente Android 13 ou superior), o aplicativo exige as seguintes permissões no arquivo `AndroidManifest.xml`:
+Para o correto funcionamento do monitoramento persistente de 5 em 5 minutos, o projeto conta com as seguintes configurações críticas:
 
-* `<uses-permission android:name="android.permission.INTERNET" />` (Para testar o status das URLs)
-* `<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />` (Para emitir os alertas)
+### 1. Java 8+ Desugaring (`android/app/build.gradle.kts`)
+Ativação do tradutor de APIs modernas para compatibilidade com fusos horários e notificações em dispositivos legados:
+```kotlin
+compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    isCoreLibraryDesugaringEnabled = true
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+
+```
+
+### 2. Permissões de Sistema (`android/app/src/main/AndroidManifest.xml`)
+
+Declaração de privilégios para execução em background e sincronização contínua de dados:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.WAKE_LOCK" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
+<application ...>
+    <service
+        android:name="id.flutter.flutter_background_service.BackgroundService"
+        android:foregroundServiceType="dataSync"
+        android:exported="true" />
+</application>
+
+```
 
 ---
 
-## 🏃 Como Executar o Projeto
+## 📦 Como Instalar e Executar o Projeto
 
-1. Clone este repositório para a sua máquina local:
+Siga os passos abaixo no seu terminal para clonar, limpar caches antigos e compilar o aplicativo de forma limpa:
+
+1. **Clonar o repositório:**
 ```bash
-git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+git clone [https://github.com/seu-usuario/app_servicealert.git](https://github.com/seu-usuario/app_servicealert.git)
+cd app_servicealert
 
 ```
 
 
-2. Abra o terminal na pasta do projeto e baixe as dependências:
+2. **Limpar o cache de compilações nativas anteriores:**
+```bash
+flutter clean
+
+```
+
+
+3. **Baixar e vincular as dependências do `pubspec.yaml`:**
 ```bash
 flutter pub get
 
 ```
 
 
-3. Conecte um emulador ou dispositivo físico e execute:
+4. **Executar em um emulador ou dispositivo físico conectado:**
 ```bash
 flutter run
 
 ```
 
 
-4. Para gerar a versão final (Release) para Android:
-```bash
-flutter build apk --release
-
-```
-
-
-
 ---
 
-## 🧠 Conceitos Aplicados
+## 👥 Desenvolvedor
 
-Este projeto serve como um excelente portfólio de conhecimentos sólidos em desenvolvimento mobile:
-
-* **Persistência de Dados:** Operações CRUD utilizando banco de dados SQL dentro do celular.
-* **Comunicação Nativa:** Uso de *Method Channels* de forma abstraída para acionar recursos do sistema operacional (Notificações).
-* **Design Patterns:** Utilização do padrão *Singleton* para garantir uma única instância de conexão com o banco de dados.
-* **Programação Assíncrona e HTTP:** Gestão eficiente de *Futures* para validar conexões de rede sem travar a interface do usuário.
+* **Leandro Coelho** - *Desenvolvimento Mobile*
