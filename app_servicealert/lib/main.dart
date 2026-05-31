@@ -1,29 +1,30 @@
+// Arquivo: lib/main.dart
 import 'package:flutter/material.dart';
+import 'services/notification_service.dart';
 import 'pages/dashboard_page.dart';
+import 'services/background_service.dart';
 
-void main() {
-  runApp(const MonitorApp());
+void main() async {
+  // Garante que os recursos do Flutter estejam prontos antes de iniciar o serviço
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializa o serviço de notificações
+  await NotificationService().initNotification();
+  await initializeBackgroundService();
+  
+  runApp(const MyApp());
 }
 
-class MonitorApp extends StatelessWidget {
-  const MonitorApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Monitor de Serviços',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
-        scaffoldBackgroundColor: Colors.grey[100],
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          backgroundColor: Colors.blueGrey,
-          centerTitle: true,
-        ),
-      ),
-      // Apontamos a tela inicial para a página que criamos na pasta pages
-      home: const DashboardPage(), 
+      title: 'Monitor de Serviços',
+      theme: ThemeData(primarySwatch: Colors.blueGrey),
+      home: const DashboardPage(),
     );
   }
 }
