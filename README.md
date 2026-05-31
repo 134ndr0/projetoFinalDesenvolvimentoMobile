@@ -1,62 +1,90 @@
 # 📊 Monitor de Serviços - Flutter
 
-Um aplicativo móvel simples, moderno e eficiente desenvolvido em **Flutter** para monitorar a disponibilidade de sites e serviços web. O aplicativo checa o status das URLs configuradas e envia alertas automatizados por e-mail caso algum serviço fique fora do ar.
+Um aplicativo móvel moderno e eficiente desenvolvido em **Flutter** para monitorar a disponibilidade de sites e serviços web em tempo real. O aplicativo permite que o usuário cadastre suas próprias URLs, salva os dados localmente no dispositivo e emite **Notificações Nativas** caso algum serviço fique fora do ar.
 
 ## 🚀 Funcionalidades
 
-* **Monitoramento em Tempo Real:** Checagem automática do status dos serviços a cada 5 minutos.
-* **Interface Moderna e Semântica:** Cores intuitivas (Verde para Online, Vermelho para Offline) que facilitam a leitura rápida do painel.
-* **Favoritos:** Opção para marcar serviços de importância significativa.
-* **Alertas Inteligentes por E-mail:** Integração com a API do **Brevo** para envio de e-mails de alerta.
-* **Lógica Anti-Spam:** Sistema que limita o envio de alertas a cada 10 minutos por serviço, evitando sobrecarga na caixa de entrada.
+* **Cadastro Dinâmico:** Adicione serviços personalizados (Nome e URL/IP) diretamente pelo aplicativo.
+* **Armazenamento Local:** Integração com **SQLite** para salvar seus serviços de forma segura e offline.
+* **Isolamento de Dados (UUID):** Geração de um identificador único para o dispositivo, garantindo que o banco de dados carregue apenas as configurações do aparelho atual.
+* **Monitoramento Automatizado:** Checagem contínua do status dos serviços a cada 5 minutos.
+* **Notificações Locais:** Alertas visuais e sonoros integrados ao sistema operacional (Android/iOS) que avisam instantaneamente quando um serviço cai, sem depender de APIs de terceiros.
+* **Lógica Anti-Spam de Alertas:** Sistema inteligente que limita a emissão de notificações a cada 10 minutos por serviço.
 
 ---
 
 ## 📁 Estrutura do Projeto
 
-O projeto segue uma arquitetura limpa e modular, separando as responsabilidades em pastas específicas dentro de `lib/`:
+O projeto adota uma arquitetura limpa, separando interface, banco de dados e regras de negócio:
 
-```
+```text
 lib/
 │
 ├── models/
-│   └── service_model.dart       # Definição da estrutura de dados do serviço.
+│   └── service_model.dart         # Estrutura do serviço e conversores para o SQLite (toMap/fromMap).
 │
 ├── widgets/
-│   └── service_card.dart        # Componente visual reutilizável (StatelessWidget).
+│   └── service_card.dart          # Componente visual reutilizável para a lista.
 │
 ├── pages/
-│   └── dashboard_page.dart      # Tela principal e controle do temporizador (StatefulWidget).
+│   └── dashboard_page.dart        # Tela principal, controle de temporizadores e interface de cadastro.
 │
 ├── services/
-│   └── monitoring_service.dart  # Lógica de requisições HTTP e integração com a API do Brevo.
+│   ├── monitoring_service.dart    # Lógica de requisições HTTP para validar o status das URLs.
+│   ├── database_service.dart      # Gerenciamento do SQLite (Criação, Inserção, Atualização e Leitura).
+│   └── notification_service.dart  # Configuração e disparo de notificações locais nativas.
 │
-└── main.dart                    # Inicialização e configuração do tema do app.
+└── main.dart                      # Ponto de entrada do app e inicialização de serviços.
+
 ```
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Tecnologias e Pacotes Utilizados
 
-* **Dart** (Linguagem de programação)
-* **Flutter** (Framework UI)
-* **Http Package** (Para requisições web e comunicação com a API)
+* **Flutter / Dart** (Framework e Linguagem)
+* **[sqflite](https://pub.dev/packages/sqflite):** Para o banco de dados relacional local.
+* **[flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications):** Para emissão de alertas nativos do dispositivo.
+* **[http](https://pub.dev/packages/http):** Para checagem de ping/status das URLs.
+* **[uuid](https://pub.dev/packages/uuid):** Para gerar o identificador único do celular.
+
+---
+
+## ⚙️ Permissões do Android
+
+Para o funcionamento correto em dispositivos Android (especialmente Android 13 ou superior), o aplicativo exige as seguintes permissões no arquivo `AndroidManifest.xml`:
+
+* `<uses-permission android:name="android.permission.INTERNET" />` (Para testar o status das URLs)
+* `<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />` (Para emitir os alertas)
 
 ---
 
 ## 🏃 Como Executar o Projeto
 
-1. Clone este repositório para a sua máquina local.
-2. Abra o terminal na raiz do projeto e instale as dependências:
+1. Clone este repositório para a sua máquina local:
+```bash
+git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+
+```
+
+
+2. Abra o terminal na pasta do projeto e baixe as dependências:
 ```bash
 flutter pub get
 
 ```
 
 
-3. Execute o aplicativo em um emulador ou dispositivo físico conectado:
+3. Conecte um emulador ou dispositivo físico e execute:
 ```bash
 flutter run
+
+```
+
+
+4. Para gerar a versão final (Release) para Android:
+```bash
+flutter build apk --release
 
 ```
 
@@ -64,11 +92,11 @@ flutter run
 
 ---
 
-## 🧠 Conceitos Praticados
+## 🧠 Conceitos Aplicados
 
-Este projeto foi excelente para consolidar fundamentos essenciais do ecossistema Flutter:
+Este projeto serve como um excelente portfólio de conhecimentos sólidos em desenvolvimento mobile:
 
-* **Gerenciamento de Estado Básico:** Uso de `StatefulWidget` e `setState` para atualizar a tela após as checagens de rede.
-* **Componentização:** Uso de `StatelessWidget` para criar interfaces isoladas e reutilizáveis.
-* **Programação Assíncrona:** Uso de `Future`, `async` e `await` para realizar requisições HTTP sem travar a interface do usuário.
-* **Ciclo de Vida de Widgets:** Implementação do `initState` e `dispose` para gerenciar a criação e destruição de temporizadores (`Timer`) em segundo plano de forma segura.
+* **Persistência de Dados:** Operações CRUD utilizando banco de dados SQL dentro do celular.
+* **Comunicação Nativa:** Uso de *Method Channels* de forma abstraída para acionar recursos do sistema operacional (Notificações).
+* **Design Patterns:** Utilização do padrão *Singleton* para garantir uma única instância de conexão com o banco de dados.
+* **Programação Assíncrona e HTTP:** Gestão eficiente de *Futures* para validar conexões de rede sem travar a interface do usuário.
