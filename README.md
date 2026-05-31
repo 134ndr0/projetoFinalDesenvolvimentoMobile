@@ -1,4 +1,3 @@
-```
 # 📊 Monitor de Serviços - Flutter
 
 Um aplicativo móvel simples, moderno e eficiente desenvolvido em **Flutter** para monitorar a disponibilidade de sites e serviços web. O aplicativo checa o status das URLs configuradas e envia alertas automatizados por e-mail caso algum serviço fique fora do ar.
@@ -17,7 +16,7 @@ Um aplicativo móvel simples, moderno e eficiente desenvolvido em **Flutter** pa
 
 O projeto segue uma arquitetura limpa e modular, separando as responsabilidades em pastas específicas dentro de `lib/`:
 
-```text
+```
 lib/
 │
 ├── models/
@@ -33,7 +32,6 @@ lib/
 │   └── monitoring_service.dart  # Lógica de requisições HTTP e integração com a API do Brevo.
 │
 └── main.dart                    # Inicialização e configuração do tema do app.
-
 ```
 
 ---
@@ -74,7 +72,3 @@ Este projeto foi excelente para consolidar fundamentos essenciais do ecossistema
 * **Componentização:** Uso de `StatelessWidget` para criar interfaces isoladas e reutilizáveis.
 * **Programação Assíncrona:** Uso de `Future`, `async` e `await` para realizar requisições HTTP sem travar a interface do usuário.
 * **Ciclo de Vida de Widgets:** Implementação do `initState` e `dispose` para gerenciar a criação e destruição de temporizadores (`Timer`) em segundo plano de forma segura.
-
-```
-
-```
