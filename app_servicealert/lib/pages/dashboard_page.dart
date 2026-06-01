@@ -226,7 +226,7 @@ class _DashboardPageState extends State<DashboardPage> {
               controller: nameController,
               decoration: const InputDecoration(labelText: 'Nome do Serviço'),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 8, width: 10),
             TextField(
               controller: urlController,
               decoration: const InputDecoration(labelText: 'URL ou IP'),
