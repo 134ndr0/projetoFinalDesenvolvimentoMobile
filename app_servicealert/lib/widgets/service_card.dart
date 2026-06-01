@@ -21,8 +21,8 @@ class ServiceCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
           leading: Icon(
-                service.isOnline! ? Icons.check_circle : Icons.error,
-                color: service.isOnline! ? Colors.green : Colors.red,
+                service.isOnline ? Icons.check_circle : Icons.error,
+                color: service.isOnline ? Colors.green : Colors.red,
                 size: 32,
               ),
         title: Text(service.name, style: const TextStyle(fontWeight: FontWeight.bold)),

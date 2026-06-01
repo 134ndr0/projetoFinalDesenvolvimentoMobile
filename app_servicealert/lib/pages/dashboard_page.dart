@@ -7,7 +7,6 @@ import '../services/monitoring_service.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// NOVO IMPORT: Necessário para ouvir o serviço em segundo plano
 import 'package:flutter_background_service/flutter_background_service.dart'; 
 
 class DashboardPage extends StatefulWidget {
@@ -62,6 +61,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   /// Inicializa o UUID e configura a escuta ativa do Segundo Plano
   Future<void> _initializeApp() async {
+    await _notificationService.initNotification();
+
     final prefs = await SharedPreferences.getInstance();
     String? savedUuid = prefs.getString('device_uuid');
     
@@ -112,6 +113,19 @@ class _DashboardPageState extends State<DashboardPage> {
   /// Carrega os dados salvos no SQLite filtrando pelo UUID do aparelho
   Future<void> _loadServicesFromDatabase() async {
     final databaseServices = await _dbService.getServicesByUuid(_deviceUuid);
+
+    for (var novoServico in databaseServices) {
+      // Procura se este serviço já existia na lista velha
+      int indexAntigo = _services.indexWhere((s) => s.id == novoServico.id);
+      
+      if (indexAntigo != -1) {
+        // Se existia, copia o status online/offline e a hora do último alerta
+        novoServico.isOnline = _services[indexAntigo].isOnline;
+        novoServico.lastAlertTime = _services[indexAntigo].lastAlertTime;
+      }
+    }
+
+    // Agora sim, atualiza a tela com os serviços novos + status preservados
     setState(() {
       _services = databaseServices;
     });
@@ -127,10 +141,8 @@ class _DashboardPageState extends State<DashboardPage> {
         service.isOnline = isNowOnline;
       });
       
-      // Atualiza o estado atual no banco de dados
-      await _dbService.updateService(service);
-      
-      if (!service.isOnline) {
+      // 2. Lógica de controle da Notificação
+      if (!isNowOnline) {
         final DateTime agora = DateTime.now();
         if (service.lastAlertTime == null || 
             agora.difference(service.lastAlertTime!).inMinutes >= 10) {
@@ -141,9 +153,9 @@ class _DashboardPageState extends State<DashboardPage> {
           );
           
           service.lastAlertTime = agora;
-          await _dbService.updateService(service);
         }
       }
+      await _dbService.updateService(service);
     }
   }
 
@@ -185,8 +197,9 @@ class _DashboardPageState extends State<DashboardPage> {
                 );
                 await _dbService.insertService(newService);
                 if (mounted) Navigator.pop(context);
-                _loadServicesFromDatabase();
                 _checkAllServices();
+                _loadServicesFromDatabase();
+                
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
