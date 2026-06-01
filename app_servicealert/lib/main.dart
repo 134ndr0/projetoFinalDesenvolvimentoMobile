@@ -5,13 +5,13 @@ import 'pages/dashboard_page.dart';
 import 'services/background_service.dart';
 
 void main() async {
-  // Garante que os recursos do Flutter estejam prontos antes de iniciar o serviço
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inicializa o serviço de notificações
-  await NotificationService().initNotification();
+
+  final notificationService = NotificationService();
+  await notificationService.initNotification(); 
+
   await initializeBackgroundService();
-  
+
   runApp(const MyApp());
 }
 

@@ -38,7 +38,7 @@ class DatabaseService {
   // Salva um novo serviço no banco
   Future<int> insertService(ServiceModel service) async {
     final db = await instance.database;
-    return await db.insert('services', service.toMap());
+    return await db.insert('services', service.toMap());    
   }
 
   // Busca apenas os serviços vinculados ao UUID deste dispositivo

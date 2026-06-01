@@ -1,12 +1,21 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
-  // Instância do plugin
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Canal estático para que ambos os lados usem a mesma configuração física no Android
+  static const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'monitor_alerta_id', 
+    'Alertas de Queda',   
+    description: 'Canal para avisar quando um site monitorado cair',
+    importance: Importance.max,
+    playSound: true,
+  );
+
+  /// 1. INICIALIZAÇÃO PARA A TELA (DASHBOARD)
+  /// Pede permissões e registra o canal visualmente.
   Future<void> initNotification() async {
-    // Configuração para o Android (usa o ícone padrão do aplicativo)
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -14,35 +23,53 @@ class NotificationService {
       android: initializationSettingsAndroid,
     );
 
-    // Inicializa o plugin
     await _localNotificationsPlugin.initialize(
-      settings: initializationSettings,
+      settings: initializationSettings, 
     );
     
-    // Solicita permissão para exibir notificações (Obrigatório para Android 13+)
+    // Cria o canal no sistema operacional
     await _localNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    // SOLICITA PERMISSÃO (Apenas aqui na UI onde há tela!)
+    await _localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
   }
 
-  /// Dispara a notificação visual na tela do celular
+  /// 2. INICIALIZAÇÃO SEGURA PARA O BACKGROUND
+  /// Versão leve: SEM pedir permissões e SEM tocar na UI.
+  Future<void> initNotificationForBackground() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    // Inicializa estritamente o motor de envio, sem interações de tela
+    await _localNotificationsPlugin.initialize(
+      settings: initializationSettings,
+    );
+  }
+
+  /// Dispara a notificação visual
   Future<void> showNotification({required String title, required String body}) async {
-    const AndroidNotificationDetails androidNotificationDetails =
+    final AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
-      'monitor_alerta_id', // ID único do canal
-      'Alertas de Queda',   // Nome do canal visível nas configurações do celular
-      channelDescription: 'Canal para avisar quando um site monitorado cair',
+      channel.id,
+      channel.name,
+      channelDescription: channel.description,
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
     );
 
-    const NotificationDetails notificationDetails = NotificationDetails(
+    final NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
     );
     
-    // Exibe a notificação de fato
     await _localNotificationsPlugin.show(
       id: DateTime.now().millisecondsSinceEpoch ~/ 1000, 
       title: title, 

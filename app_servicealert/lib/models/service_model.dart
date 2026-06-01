@@ -17,13 +17,13 @@ class ServiceModel {
     this.lastAlertTime,
   });
 
-  // Converte um ServiceModel em um Map (formato que o SQLite aceita para salvar)
+  // Converte um ServiceModel em um Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'url': url,
-      'isFavorite': isFavorite ? 1 : 0, // SQLite não tem booleano, usamos 1 para true e 0 para false
+      'isFavorite': isFavorite ? 1 : 0, // 1 para true e 0 para false
       'deviceUuid': deviceUuid,
     };
   }
@@ -36,7 +36,7 @@ class ServiceModel {
       url: map['url'],
       isFavorite: map['isFavorite'] == 1,
       deviceUuid: map['deviceUuid'] ?? '',
-      isOnline: true, // Começa como online até a primeira checagem de rede
+      isOnline: false // Começa como online até a primeira checagem de rede
     );
   }
 }
